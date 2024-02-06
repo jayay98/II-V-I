@@ -1,2 +1,2 @@
 # II-V-I
-Listen to Lofi music everywhere
+Generative Player for II-V-I progressions.
