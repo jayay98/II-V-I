@@ -1,87 +1,65 @@
-/******************************************/
-/*
-  Example program to write N sine tones to
-  an N channel soundfile.
-
-  By default, the program will write an
-  N channel WAV file.  However, it is
-  simple to change the file type argument
-  in the FileWvOut constructor.
-
-  By Gary P. Scavone, 2000 - 2002.
-*/
-/******************************************/
-
-#include "SineWave.h"
-#include "FileWvOut.h"
-#include <cstdlib>
-
-using namespace stk;
-
-void usage(void) {
-  // Error function in case of incorrect command-line
-  // argument specifications.
-  std::cout << "\nuseage: sine N file time fs\n";
-  std::cout << "    where N = number of channels (sines),\n";
-  std::cout << "    file = the .wav file to create,\n";
-  std::cout << "    time = the amount of time to record (in seconds),\n";
-  std::cout << "    and fs = the sample rate (in Hz).\n\n";
-  exit( 0 );
-}
-
-int main( int argc, char *argv[] )
+#include <wx/wxprec.h>
+#ifndef WX_PRECOMP
+    #include <wx/wx.h>
+#endif
+class MyApp: public wxApp
 {
-  float base_freq = 220.0;
-  int i;
-
-  // Minimal command-line checking.
-  if ( argc != 5 ) usage();
-
-  int channels = (int) atoi( argv[1] );
-  double time = atof( argv[3] );
-  double srate = atof( argv[4] );
-
-  // Create our object instances.
-  FileWvOut output;
-  SineWave **oscs = (SineWave **) malloc( channels * sizeof(SineWave *) );
-  for ( i=0; i<channels; i++ ) oscs[i] = 0;
-
-  // If you want to change the default sample rate (set in Stk.h), do
-  // it before instantiating any objects!!
-  Stk::setSampleRate( srate );
-
-  // Define the sinewaves.
-  for ( i=0; i<channels; i++ )
-    oscs[i] = new SineWave;
-
-  // Set oscillator frequency(ies) here ... somewhat random.
-  for ( i=0; i<channels; i++ )
-    oscs[i]->setFrequency( base_freq + i*(45.0) );
-
-  long nFrames = (long) ( time * Stk::sampleRate() );
-  StkFrames frames( nFrames, channels );
-
-  // Open the soundfile for output.  Other file format options
-  // include: FILE_SND, FILE_AIF, FILE_MAT, and FILE_RAW.  Other data
-  // type options include: STK_SINT8, STK_INT24, STK_SINT32,
-  // STK_FLOAT32, and STK_FLOAT64.
-  try {
-    output.openFile( argv[2], channels, FileWrite::FILE_WAV, Stk::STK_SINT16 );
-  }
-  catch ( StkError & ) {
-    goto cleanup;
-  }
-
-  // Here's the runtime code ... no loop
-  for ( i=0; i<channels; i++ )
-    oscs[i]->tick( frames, i );
-
-  output.tick( frames );
-
- cleanup:
-  for ( i=0; i<channels; i++ )
-    delete oscs[i];
-  free( oscs );
-
-  return 0;
+public:
+    virtual bool OnInit();
+};
+class MyFrame: public wxFrame
+{
+public:
+    MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size);
+private:
+    void OnHello(wxCommandEvent& event);
+    void OnExit(wxCommandEvent& event);
+    void OnAbout(wxCommandEvent& event);
+    wxDECLARE_EVENT_TABLE();
+};
+enum
+{
+    ID_Hello = 1
+};
+wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
+    EVT_MENU(ID_Hello,   MyFrame::OnHello)
+    EVT_MENU(wxID_EXIT,  MyFrame::OnExit)
+    EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
+wxEND_EVENT_TABLE()
+wxIMPLEMENT_APP(MyApp);
+bool MyApp::OnInit()
+{
+    MyFrame *frame = new MyFrame( "Hello World", wxPoint(50, 50), wxSize(450, 340) );
+    frame->Show( true );
+    return true;
+}
+MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
+        : wxFrame(NULL, wxID_ANY, title, pos, size)
+{
+    wxMenu *menuFile = new wxMenu;
+    menuFile->Append(ID_Hello, "&Hello...\tCtrl-H",
+                     "Help string shown in status bar for this menu item");
+    menuFile->AppendSeparator();
+    menuFile->Append(wxID_EXIT);
+    wxMenu *menuHelp = new wxMenu;
+    menuHelp->Append(wxID_ABOUT);
+    wxMenuBar *menuBar = new wxMenuBar;
+    menuBar->Append( menuFile, "&File" );
+    menuBar->Append( menuHelp, "&Help" );
+    SetMenuBar( menuBar );
+    CreateStatusBar();
+    SetStatusText( "Welcome to wxWidgets!" );
+}
+void MyFrame::OnExit(wxCommandEvent& event)
+{
+    Close( true );
+}
+void MyFrame::OnAbout(wxCommandEvent& event)
+{
+    wxMessageBox( "This is a wxWidgets' Hello world sample",
+                  "About Hello World", wxOK | wxICON_INFORMATION );
+}
+void MyFrame::OnHello(wxCommandEvent& event)
+{
+    wxLogMessage("Hello world from wxWidgets!");
 }

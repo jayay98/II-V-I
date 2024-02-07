@@ -1,3 +1,6 @@
 [submodule "libs/stk"]
 	path = libs/stk
 	url = git@github.com:thestk/stk.git
+[submodule "libs/wx"]
+	path = libs/wx
+	url = git@github.com:wxWidgets/wxWidgets.git

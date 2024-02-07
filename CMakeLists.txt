@@ -1,11 +1,30 @@
 cmake_minimum_required(VERSION 3.27)
+
+if(APPLE AND NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+# If no deployment target has been set default to the minimum supported
+# OS version (this has to be set before the first project() call)
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+set(CMAKE_OSX_DEPLOYMENT_TARGET 12.0 CACHE STRING "iOS Deployment Target")
+else()
+set(CMAKE_OSX_DEPLOYMENT_TARGET 10.10 CACHE STRING "macOS Deployment Target")
+endif()
+endif()
+
 project(iivi VERSION 1.0)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/libs/stk/cmake/")
-
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(COMPILE_PROJECTS OFF)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/libs/stk/cmake/")
+set(wxBUILD_SHARED OFF)
+set(wxBUILD_COMPATIBILITY "3.2")
+
 add_subdirectory(libs/stk)
 include_directories(libs/stk/include)
 
-add_executable(main src/main.cpp)
-target_link_libraries(main stk)
+add_subdirectory(libs/wx)
+include_directories(libs/wx/include)
+
+set(SRC_FILES src/main.cpp)
+add_executable(${PROJECT_NAME} ${SRC_FILES})
+target_link_libraries(${PROJECT_NAME} wx::net wx::core wx::base)
