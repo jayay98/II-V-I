@@ -19,6 +19,10 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/libs/stk/cmake/")
 set(wxBUILD_SHARED OFF)
 set(wxBUILD_COMPATIBILITY "3.2")
 
+add_definitions(-D__MACOSX_CORE__)
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+find_package(Threads REQUIRED)
 add_subdirectory(libs/stk)
 include_directories(libs/stk/include)
 
@@ -27,4 +31,4 @@ include_directories(libs/wx/include)
 
 set(SRC_FILES src/main.cpp)
 add_executable(${PROJECT_NAME} ${SRC_FILES})
-target_link_libraries(${PROJECT_NAME} wx::net wx::core wx::base)
+target_link_libraries(${PROJECT_NAME} wx::net wx::core wx::base ${CMAKE_THREAD_LIBS_INIT} stk)
