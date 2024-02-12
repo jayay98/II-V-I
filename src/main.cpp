@@ -8,7 +8,7 @@
 
 #include <RtAudio.h>
 #include <Instrmnt.h>
-#include <BeeThree.h>
+#include <ModalBar.h>
 
 enum
 {
@@ -65,9 +65,10 @@ int tick(void* outputBuffer, void* inputBuffer, unsigned int nBufferFrames, doub
 
   for (unsigned int i=0; i<nBufferFrames; i++) {
     *samples++ = data->instrument->tick();
-    if ( ++data->counter % 2000 == 0 ) {
-      data->scaler += 0.025;
-      data->instrument->setFrequency( data->frequency * data->scaler );
+    if ( ++data->counter % 16000 == 0 ) {
+      data->instrument->noteOff(0.5);
+      data->instrument->noteOn(data->frequency * data->scaler, 0.5);
+      data->scaler *= powf(2.0f,(float)1/12);
     }
   }
 
@@ -146,9 +147,8 @@ void MainFrame::OnPlay()
 {
   data = TickData();
 
-  data.instrument = new stk::BeeThree();
+  data.instrument = new stk::ModalBar();
   data.frequency = frequency;
-  data.instrument->noteOn(data.frequency, 0.5);
   data.done = false;
   if (audioStream->startStream())
   {
@@ -159,7 +159,6 @@ void MainFrame::OnPlay()
 
 void MainFrame::OnPause()
 {
-  data.instrument->noteOff(0.5);
   data.done = true;
   audioStream->stopStream();
   // delete audioStream;
