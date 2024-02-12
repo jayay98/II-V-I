@@ -6,13 +6,26 @@
 #include <wx/bmpbuttn.h>
 #include <wx/panel.h>
 
-#include <SineWave.h>
 #include <RtAudio.h>
+#include <Instrmnt.h>
+#include <BeeThree.h>
 
 enum
 {
   wxID_PLAY = 1,
   wxID_BUTTONPLAY,
+};
+
+struct TickData {
+  stk::Instrmnt *instrument;
+  stk::StkFloat frequency;
+  stk::StkFloat scaler;
+  long counter;
+  bool done;
+
+  // Default constructor.
+  TickData()
+    : instrument(0), scaler(1.0), counter(0), done( false ) {}
 };
 
 class MyApp : public wxApp
@@ -36,10 +49,10 @@ private:
   wxPoint m_delta;
 
   RtAudio* audioStream;
-  stk::SineWave sine;
+  TickData data;
   RtAudio::StreamParameters params;
   unsigned int bufferFrames = stk::RT_BUFFER_SIZE;
-  double frequency = 440.0;
+  double frequency = 220.0;
 
   bool isPlaying = false;
   wxDECLARE_EVENT_TABLE();
@@ -47,11 +60,19 @@ private:
 
 int tick(void* outputBuffer, void* inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void* dataPointer)
 {
-  stk::SineWave* sine = (stk::SineWave*) dataPointer;
+  TickData *data = (TickData *) dataPointer;
   stk::StkFloat* samples = (stk::StkFloat*) outputBuffer;
 
-  for (unsigned int i=0; i<nBufferFrames; i++)
-    *samples++ = sine->tick();
+  for (unsigned int i=0; i<nBufferFrames; i++) {
+    *samples++ = data->instrument->tick();
+    if ( ++data->counter % 2000 == 0 ) {
+      data->scaler += 0.025;
+      data->instrument->setFrequency( data->frequency * data->scaler );
+    }
+  }
+
+  // if ( data->counter > 80000 )
+  //   data->done = true;
 
   return 0;
 }
@@ -88,12 +109,13 @@ MainFrame::MainFrame() : wxFrame(nullptr, wxID_ANY, wxEmptyString, wxDefaultPosi
   Bind(wxEVT_BUTTON, &MainFrame::OnPlayButtonClicked, this, wxID_BUTTONPLAY);
 
   stk::Stk::setSampleRate(44100.0);
+  stk::Stk::setRawwavePath("libs/stk/rawwaves");
   audioStream = new RtAudio;
   params.deviceId = audioStream->getDefaultOutputDevice();
   params.nChannels = 1;
   RtAudioFormat format = ( sizeof(stk::StkFloat) == 8 ) ? RTAUDIO_FLOAT64 : RTAUDIO_FLOAT32;
 
-  if (audioStream->openStream(&params, NULL, format, (unsigned int) stk::Stk::sampleRate(), &bufferFrames, &tick, (void *) &sine ))
+  if (audioStream->openStream(&params, NULL, format, (unsigned int) stk::Stk::sampleRate(), &bufferFrames, &tick, (void *) &data ))
   {
     std::cout << audioStream->getErrorText() << std::endl;
   }
@@ -122,7 +144,12 @@ void MainFrame::OnPlayButtonClicked(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnPlay()
 {
-  sine.setFrequency(frequency);
+  data = TickData();
+
+  data.instrument = new stk::BeeThree();
+  data.frequency = frequency;
+  data.instrument->noteOn(data.frequency, 0.5);
+  data.done = false;
   if (audioStream->startStream())
   {
     std::cout << audioStream->getErrorText() << std::endl;
@@ -132,8 +159,9 @@ void MainFrame::OnPlay()
 
 void MainFrame::OnPause()
 {
+  data.instrument->noteOff(0.5);
+  data.done = true;
   audioStream->stopStream();
   // delete audioStream;
   isPlaying = false;
-  frequency = frequency + 20;
 }
