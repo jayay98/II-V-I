@@ -95,14 +95,14 @@ wxEND_EVENT_TABLE()
 
 MainFrame::MainFrame() : wxFrame(nullptr, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(200,100), 0 | wxFRAME_NO_TASKBAR | wxFRAME_SHAPED | wxSTAY_ON_TOP | wxSIMPLE_BORDER)
 {
-  m_bmp = wxBitmap("round_rect.png", wxBITMAP_TYPE_PNG);
+  m_bmp = wxBitmap("resources/round_rect.png", wxBITMAP_TYPE_PNG);
   SetSize(wxSize(m_bmp.GetWidth(), m_bmp.GetHeight()));
   SetToolTip("Right-click to close, double click to cycle shape");
   SetShape(wxRegion(m_bmp, *wxWHITE));
 
   wxPanel *panel = new wxPanel(this, -1, wxPoint(0, 100), wxSize(320, 100));
   wxBitmap bitmap;
-  bitmap.LoadFile("chiave_di_sol.bmp", wxBITMAP_TYPE_BMP);
+  bitmap.LoadFile("resources/chiave_di_sol.bmp", wxBITMAP_TYPE_BMP);
 
   // The last parameter (0) - so we have 2D behaviour
   wxPoint buttonPosition = wxDefaultPosition + wxPoint(0.5*this->GetSize().GetWidth(),0.5*this->GetSize().GetHeight());
