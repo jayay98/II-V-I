@@ -8,7 +8,7 @@
 
 #include <RtAudio.h>
 #include <Instrmnt.h>
-#include <ModalBar.h>
+#include <Plucked.h>
 
 enum
 {
@@ -65,8 +65,8 @@ int tick(void* outputBuffer, void* inputBuffer, unsigned int nBufferFrames, doub
 
   for (unsigned int i=0; i<nBufferFrames; i++) {
     *samples++ = data->instrument->tick();
-    if ( ++data->counter % 16000 == 0 ) {
-      data->instrument->noteOff(0.5);
+    if ( ++data->counter % 24000 == 0 ) {
+      data->instrument->noteOff(0.0);
       data->instrument->noteOn(data->frequency * data->scaler, 0.5);
       data->scaler *= powf(2.0f,(float)1/12);
     }
@@ -147,7 +147,7 @@ void MainFrame::OnPlay()
 {
   data = TickData();
 
-  data.instrument = new stk::ModalBar();
+  data.instrument = new stk::Plucked();
   data.frequency = frequency;
   data.done = false;
   if (audioStream->startStream())
